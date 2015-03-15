@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #ff0000
+}
+
+#info2 {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #aaccff
+}
+
+</style>
+</head>
+
+<body> 
+<div id = "info"> 
+	 Sounds <br/><br/>
+	 with BGM (<a href="javascript:toggle();">dimmer</a>)
+  </div>
+<script src="js/three.min.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/KeyboardState.js"></script>
+<div id="info2">
+     type A to stop or keep the animate <br/>
+	 type z , x , c , v to change <br/>
+     whether earth or moon to rotation or revolution<br/>
+	 (+ window resize)
+</div>
+
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="sounds/spaceBGM.mp3" type='audio/mp3'>
+</audio>
+
+<script>
+var camera, scene, renderer, sun, earth, angle = 0,
+    clock, control;
+var keyboard=new KeyboardState;
+var all=true,Eself=true,Emother=true,Mself=true,Mmother=true;
+/*self=自轉,mother=公轉*/
+var soundTrack;
+var clockOP=true,Val=1.0,sign=1.0;
+init();
+animate();
+
+function toggle(){
+	clockOP=!clockOP;
+	sign=clockOP ? 1 : -1 ;
+	console.log(sign);
+}
+
+function init() {
+	soundTrack=document.getElementById('soundtrack');
+	
+    clock = new THREE.Clock();
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.z = 500;
+    scene.add(camera);
+
+	var Texture = new THREE.ImageUtils.loadTexture( 'images/sun.jpg' );
+	Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping; 
+	Texture.repeat.set( 1, 1 );
+	var SunMaterial = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+	
+    sun = new THREE.Mesh(new THREE.SphereGeometry(20,18,18),SunMaterial);
+
+	Texture = new THREE.ImageUtils.loadTexture( 'images/earth.jpg' );
+	Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping; 
+	Texture.repeat.set( 1, 1 );
+    
+	earth = new THREE.Mesh(new THREE.SphereGeometry(10,18,18),
+    new THREE.MeshBasicMaterial({
+         map: Texture, side: THREE.DoubleSide 
+    }));
+	
+	Texture = new THREE.ImageUtils.loadTexture( 'images/moon.jpg' );
+	Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping; 
+	Texture.repeat.set( 1, 1 );
+	
+    moon = new THREE.Mesh(new THREE.SphereGeometry(3,18,18),
+    new THREE.MeshBasicMaterial({
+        map: Texture, side: THREE.DoubleSide
+    }));
+    earth.add(moon);
+    sun.add(earth);
+    scene.add(sun);
+
+    var gridXZ = new THREE.GridHelper(100, 10);
+    gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+    //scene.add(gridXZ);
+
+    light = new THREE.PointLight(0xffffff);
+    light.position.set(100, 300, 200);
+    scene.add(light);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x888888);
+
+    control = new THREE.OrbitControls(camera, renderer.domElement);
+    document.body.appendChild(renderer.domElement);
+    window.addEventListener('resize', onWindowResize, false);
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+    Val+=sign*0.01;
+	Val=THREE.Math.clamp(Val,0,1);
+	soundTrack.volume=Val;
+	
+	control.update();
+	keyboard.update();
+	
+    requestAnimationFrame(animate);
+	if(keyboard.down('A'))
+		all=!all;
+	if(keyboard.down('Z'))
+		Emother=!Emother;
+	if(keyboard.down('X'))
+		Eself=!Eself;
+	if(keyboard.down('C'))
+		Mmother=!Mmother;
+	if(keyboard.down('V'))
+		Mself=!Mself;
+	
+	if(all)
+		render();
+}
+
+function render() {
+    angle = clock.getElapsedTime()/200;
+
+	if(Emother)
+		earth.position.set(80 * Math.cos(angle), 0, -80 * Math.sin(angle));
+    if(Eself)
+		earth.rotation.y = angle*375;
+
+    angle2 = angle * 12.5;
+    
+	if(Mmother)
+		moon.position.set(20 * Math.cos(angle2-angle*375), 0, -20 * Math.sin(angle2-angle*375));
+    if(Mself)
+		moon.rotation.y = angle2-angle*375;
+
+    renderer.render(scene, camera);
+}
+</script>
+
+</body>
+
+</html>

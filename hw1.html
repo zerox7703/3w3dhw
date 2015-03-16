@@ -36,7 +36,7 @@
 <div id="info2">
      type A to stop or keep the animate <br/>
 	 type z , x , c , v to change <br/>
-     whether earth or moon to rotation or revolution<br/>
+     whether earth or moon to revolution or rotation<br/>
 	 (+ window resize)
 </div>
 
@@ -155,9 +155,11 @@ function render() {
 		earth.rotation.y = angle*375;
 
     angle2 = angle * 12.5;
-    
-	if(Mmother)
-		moon.position.set(20 * Math.cos(angle2-angle*375), 0, -20 * Math.sin(angle2-angle*375));
+    if(!Eself)
+		angle=0;
+	if(!Mmother)
+		angle2=0;
+	moon.position.set(20 * Math.cos(angle2-angle*375), 0, -20 * Math.sin(angle2-angle*375));
     if(Mself)
 		moon.rotation.y = angle2-angle*375;
 

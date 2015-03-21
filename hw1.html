@@ -48,6 +48,7 @@
 var camera, scene, renderer, sun, earth, angle = 0,
     clock, control;
 var keyboard=new KeyboardState;
+var BGscene,BGcamera;
 var all=true,Eself=true,Emother=true,Mself=true,Mmother=true;
 /*self=自轉,mother=公轉*/
 var soundTrack;
@@ -83,7 +84,7 @@ function init() {
 	Texture.repeat.set( 1, 1 );
     
 	earth = new THREE.Mesh(new THREE.SphereGeometry(10,18,18),
-    new THREE.MeshBasicMaterial({
+    new THREE.MeshPhongMaterial({
          map: Texture, side: THREE.DoubleSide 
     }));
 	
@@ -92,7 +93,7 @@ function init() {
 	Texture.repeat.set( 1, 1 );
 	
     moon = new THREE.Mesh(new THREE.SphereGeometry(3,18,18),
-    new THREE.MeshBasicMaterial({
+    new THREE.MeshPhongMaterial({
         map: Texture, side: THREE.DoubleSide
     }));
     earth.add(moon);
@@ -104,12 +105,45 @@ function init() {
     //scene.add(gridXZ);
 
     light = new THREE.PointLight(0xffffff);
-    light.position.set(100, 300, 200);
+    light.position.set(0, 0, 0);
     scene.add(light);
+	
+	light2 = new THREE.PointLight(0xffffff);
+    light2.position.set(0, 10, 0);
+    scene.add(light2);
+	
+	light3 = new THREE.PointLight(0xffffff);
+    light3.position.set(0, -10, 0);
+    scene.add(light3);
+	
+	light4 = new THREE.PointLight(0xffffff);
+    light4.position.set(0, 0, 10);
+    scene.add(light4);
+	
+	light5 = new THREE.PointLight(0xffffff);
+    light5.position.set(0, 0, -10);
+    scene.add(light5);
+	
+	//setbackground
+	Texture = new THREE.ImageUtils.loadTexture('images/space.jpg')
+	var BGMesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,0),
+	new THREE.MeshBasicMaterial({
+		map:Texture
+	}));
+	
+	BGMesh.material.depthTest = false;
+    BGMesh.material.depthWrite = false;
+	
+	BGscene = new THREE.Scene();
+	BGcamera = new THREE.Camera();
+	
+	BGscene.add(BGcamera);
+	BGscene.add(BGMesh);
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x888888);
+	renderer.autoClear = false;
+    //renderer.setClearColor(0x888888);
 
     control = new THREE.OrbitControls(camera, renderer.domElement);
     document.body.appendChild(renderer.domElement);
@@ -163,6 +197,7 @@ function render() {
     if(Mself)
 		moon.rotation.y = angle2-angle*375;
 
+	renderer.render(BGscene,BGcamera);
     renderer.render(scene, camera);
 }
 </script>

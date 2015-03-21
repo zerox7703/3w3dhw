@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -36,14 +37,14 @@ function init()
 
 	scene = new THREE.Scene();
 	
-	cube = new THREE.Mesh (new THREE.BoxGeometry (20,5,8),
+	cube = new THREE.Mesh (new THREE.BoxGeometry (5,5,25),
 							new THREE.MeshLambertMaterial ({color: 0x1ec876}));
 
-	cube.position.set (75, 0, 0);
+	cube.position.set (-50, 5, 30);
 	scene.add (cube);
 
 	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
-	camera.position.y = 160;
+	camera.position.y = 560;
 	camera.position.z = 400;
 	camera.lookAt (new THREE.Vector3(0,0,0));
 
@@ -52,7 +53,7 @@ function init()
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/myphoto.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-	floorTexture.repeat.set( 4, 4 );
+	floorTexture.repeat.set( 1, 1 );
 	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	
 	var floorGeometry = new THREE.PlaneGeometry(150, 150);//, 10, 10);  // not clear what segment does
@@ -92,3 +93,26 @@ controls.update();
 </body>
 
 </html>
+=======
+<h1 align="center"><font face="Bookman Old Style">ThreeJS Tutorial Set </font>
+</h1>
+<h1 align="center"><font face="Bookman Old Style">for OpenGL Users</font></h1>
+<table border="1" width="100%">
+	<tr>
+		<td width="296">
+		<img border="0" src="face/HW0_face.gif" width="296" height="247"></td>
+		<td width="30%">
+		<img border="0" src="face/HW1_face.gif" width="352" height="252"></td>
+	</tr>
+	<tr>
+		<td width="30%">
+		<p align="center">
+		<a href="http://zerox7703.github.io/3w3dhw/hw0.html">
+		hw0.html</a></td>
+		<td width="30%">
+		<p align="center">
+		<a href="http://zerox7703.github.io/3w3dhw/hw1.html">
+		hw1.html</a></td>
+	</tr>
+</table>
+>>>>>>> master

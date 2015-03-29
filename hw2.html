@@ -61,13 +61,13 @@ function init() {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(100,250,500)
-	camera.lookAt (new THREE.Vector3(100,250,0));
+	camera.position.set(25,50,200)
+	camera.lookAt (new THREE.Vector3(30,60,100));
     scene.add(camera);
 	//
 	var bumptext = THREE.ImageUtils.loadTexture('images/wood.jpg');
 	//材質花紋
-	/*200*300
+	/*50*75
 		OOOO
 		8  8
 		8  8
@@ -75,55 +75,55 @@ function init() {
 	*/
 	var side = new THREE.Object3D();
 	
-	var Lside = new THREE.Mesh(new THREE.BoxGeometry(10,10,300),
+	var Lside = new THREE.Mesh(new THREE.BoxGeometry(5,5,75),
 	new THREE.MeshPhongMaterial({
 		color:0xd9ba77,
 		bumpMap: bumptext,
         bumpScale: 0.8,
 		shininess:10
 	}))
-	Lside.position.set(5,-5,-150);
+	Lside.position.set(2.5,-2.5,-37.5);
 	
-	var Uside = new THREE.Mesh(new THREE.BoxGeometry(200,10,10),
+	var Uside = new THREE.Mesh(new THREE.BoxGeometry(50,5,5),
 	new THREE.MeshPhongMaterial({
 		color:0xd9ba77,
 		bumpMap: bumptext,
         bumpScale: 0.8,
 		shininess:10
 	}))
-	Uside.position.set(100,-5,-295);
+	Uside.position.set(25,-2.5,-72.5);
 	
-	var Rside = new THREE.Mesh(new THREE.BoxGeometry(10,10,300),
+	var Rside = new THREE.Mesh(new THREE.BoxGeometry(5,5,75),
 	new THREE.MeshPhongMaterial({
 		color:0xd9ba77,
 		bumpMap: bumptext,
         bumpScale: 0.8,
 		shininess:10
 	}))
-	Rside.position.set(195,-5,-150);
+	Rside.position.set(47.5,-2.5,-37.5);
 	
-	var Dside = new THREE.Mesh(new THREE.BoxGeometry(200,10,10),
+	var Dside = new THREE.Mesh(new THREE.BoxGeometry(50,5,5),
 	new THREE.MeshPhongMaterial({
 		color:0xd9ba77,
 		bumpMap: bumptext,
         bumpScale: 0.8,
 		shininess:10
 	}))
-	Dside.position.set(100,-5,-5);
+	Dside.position.set(25,-2.5,-2.5);
 	
 	//
-	var DnCy = new THREE.Mesh(new THREE.CylinderGeometry(2,2,20,28),
+	var DnCy = new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,28),
 	new THREE.MeshPhongMaterial({
 		color:0xffff00
 	}))
-	var UpCy = new THREE.Mesh(new THREE.CylinderGeometry(2,2,20,28),
+	var UpCy = new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,28),
 	new THREE.MeshPhongMaterial({
 		color:0xffff00
 	}))
 	UpCy.rotation.x = Math.PI/2;
 	DnCy.rotation.x = Math.PI/2;
-	UpCy.position.set(-5,5,-100);
-	DnCy.position.set(-5,5,100);
+	UpCy.position.set(-2.5,2.5,-25);
+	DnCy.position.set(-2.5,2.5,25);
 	Rside.add(UpCy);
 	Rside.add(DnCy);
 	//門閂
@@ -135,26 +135,26 @@ function init() {
 	side.rotation.x = Math.PI/2;
 	//門框
 	//
-	var LockCy = new THREE.Mesh(new THREE.CylinderGeometry(5,5,20,28),
+	var LockCy = new THREE.Mesh(new THREE.CylinderGeometry(1,1,5,28),
 	new THREE.MeshPhongMaterial(
 	{
 		color:0xffff00
 	}));
 
-	var LockSp = new THREE.Mesh(new THREE.SphereGeometry(10,28,28),
+	var LockSp = new THREE.Mesh(new THREE.SphereGeometry(2,28,28),
     new THREE.MeshPhongMaterial({
         color:0xffff00
     }));
 	
-	LockSp.position.set(0,15,0);
+	LockSp.position.set(0,1,0);
 	
 	LockCy.add(LockSp);
-	LockCy.position.set(-60,10,0); 
+	LockCy.position.set(-15,5,0); 
 	//門把
 	//
 	
 	door = new THREE.Object3D();
-	var Dmesh = new THREE.Mesh(new THREE.BoxGeometry(180,10,280),
+	var Dmesh = new THREE.Mesh(new THREE.BoxGeometry(40,5,65),
 	new THREE.MeshPhongMaterial({
 		color:0xd9ba77,
 		bumpMap: bumptext,
@@ -162,9 +162,9 @@ function init() {
 		shininess:10
 	}));
 	Dmesh.add(LockCy);
-	Dmesh.position.set(-90,-5,-140);
+	Dmesh.position.set(-20,-2.5,-32.5);
 	door.add(Dmesh);
-	door.position.set(190,10,0);
+	door.position.set(45,5,0);
 	door.rotation.x = Math.PI/2;
 	//門
 	scene.add(side);

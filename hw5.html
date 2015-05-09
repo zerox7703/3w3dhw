@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<head>
+<style>
+#container {
+    width:60%;
+    float:left;
+    background-color:pink;
+   margin-top: 5px;
+}
+#cnvsFrame {
+    height: 0;
+    padding-bottom:100%;
+}
+
+.fl {
+    float:left;
+    margin:20px;
+}
+.flc {
+    float:right;
+    margin:5px;
+    width:30%;
+}
+body {
+    overflow: auto;
+}
+</style>
+</head>
+<body>
+
+<h1> Art gallery indoor </h1>
+<button onclick="javascript:changeAct(0)">move pic</button> <button onclick="javascript:changeAct(1)">add pic</button> <button onclick="javascript:changeAct(2)">del pic</button>
+<button onclick="javascript:saveState()">save(Local)</button> <button onclick="javascript:loadState()">load(Local)</button>
+<hr>
+<div id="container">
+<div id="cnvsFrame">
+    <canvas id="cnvs"> </canvas>
+</div>
+</div>
+
+    <img src="http://i.imgur.com/SioC0Bw.png" class="flc" onclick="javascript:tst(src);" />
+    <img src="http://i.imgur.com/p8CRm9W.jpg" class="flc" onclick="javascript:tst(src);" />
+	<img id="showresult" class="flc" onclick="javascript:tst(src);" />
+<div style="clear:both"></div>
+<hr>
+<p class='fl'>
+    Click the images to set the texture to the plane model.
+</p>
+  
+<script src="js/three.min.js"></script>
+<script src="js/OrbitControls.js">
+    
+</script>
+
+<script>
+var camera, scene, renderer, geometry, material, wallU, wallL, wallI, ceiling, light, controls;
+var raycaster;
+var Lmesh,Lmesh2,angle=0;
+var tex,choosePic,trush=0;
+var mouse = new THREE.Vector2();
+var pickables = [];
+var actType = 0;
+init();
+animate();
+
+function saveState(){
+	for(var i=3;i<pickables.length;i++)
+	{
+		localStorage.setItem(pickables[i].name+"pos",pickables[i].position.x+","+pickables[i].position.y+","+pickables[i].position.z);
+		localStorage.setItem(pickables[i].name+"rot",pickables[i].rotation.x+","+pickables[i].rotation.y+","+pickables[i].rotation.z);
+	}
+}
+
+function loadState(){
+	for(var i=3;i<pickables.length;i++)
+	{
+		try{
+			var str=localStorage.getItem(pickables[i].name+"pos");
+			var pos=str.split(",");
+			pickables[i].position.set(parseFloat(pos[0]),parseFloat(pos[1]),parseFloat(pos[2]));
+			str=localStorage.getItem(pickables[i].name+"rot");
+			var rot=str.split(",");
+			pickables[i].rotation.x=(parseFloat(rot[0]));
+			pickables[i].rotation.y=(parseFloat(rot[1]));
+			pickables[i].rotation.z=(parseFloat(rot[2]));
+		}catch(err)
+		{
+			console.log("Picture has been delete");
+		}
+	}
+}
+
+function changeAct(type)  {
+	actType=type;
+}
+
+
+function init() {
+    var theCanvas = document.getElementById("cnvs");
+    var theCanvasFrame = document.getElementById("cnvsFrame");
+
+    renderer = new THREE.WebGLRenderer({
+        canvas: theCanvas,
+        antialias: true
+    });
+    var ww = theCanvasFrame.clientWidth;
+    var hh = theCanvasFrame.clientHeight;
+    renderer.setSize(ww, hh);
+    renderer.setClearColor(0x222222);
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(50, ww/hh, 1, 1000);
+    camera.position.set(0,50,200);
+    scene.add(camera);
+
+    //////////////////////////////////////////////////////
+    THREE.ImageUtils.crossOrigin = '';
+    geometry = new THREE.PlaneGeometry(250, 100);
+    material = new THREE.MeshLambertMaterial({color:0xaaaa00,side:THREE.DoubleSide});
+	
+    wallU = new THREE.Mesh(geometry, material);
+	wallU.name="wallU";
+	wallU.position.set(0,50,-125);
+    scene.add(wallU);
+	
+	var Pic1 = new THREE.Mesh(new THREE.BoxGeometry(50,20,2),
+	new THREE.MeshPhongMaterial({
+		map: new THREE.ImageUtils.loadTexture('images/napolo.jpg'),
+		side: THREE.DoubleSide
+	}));
+	Pic1.name="Pic1";
+	Pic1.position.set(0,50,-125);
+	scene.add(Pic1);
+	
+	wallL = new THREE.Mesh(new THREE.PlaneGeometry(250,100),
+	new THREE.MeshLambertMaterial({
+		color:0xaaaa00,
+		side:THREE.DoubleSide
+	}));
+	wallL.name="wallL";
+	wallL.position.set(-125,50,0);
+	wallL.rotation.y=Math.PI/2;
+	scene.add(wallL);
+	
+	var Pic2 = new THREE.Mesh(new THREE.BoxGeometry(50,20,2),
+	new THREE.MeshPhongMaterial({
+		map: new THREE.ImageUtils.loadTexture('images/mona.jpg'),
+		side: THREE.DoubleSide
+	}));
+	Pic2.name="Pic2";
+	Pic2.position.set(-125,50,0);
+	Pic2.rotation.y=Math.PI/2;
+	scene.add(Pic2);
+	
+	var walltex = new THREE.ImageUtils.loadTexture('images/wood.jpg');
+	wallI = new THREE.Mesh(new THREE.BoxGeometry(100,50,10),
+	new THREE.MeshPhongMaterial({
+		bumpMap: walltex,
+		bumpScale: 0.8,
+		color: 0xFF9335,
+		side:THREE.DoubleSide
+	}));
+	wallI.name="wallI";
+	wallI.position.set(0,25,-20);
+	scene.add(wallI);
+	
+	var Pic3 = new THREE.Mesh(new THREE.BoxGeometry(50,20,2),
+	new THREE.MeshPhongMaterial({
+		map: new THREE.ImageUtils.loadTexture('images/nahan.jpg'),
+		side: THREE.DoubleSide
+	}));
+	Pic3.name="Pic3";
+	Pic3.position.set(0,25,-15);
+	scene.add(Pic3);
+	
+	//////////////////////////////////////////////////////////////pickables
+	pickables = [wallU,wallL,wallI,Pic1,Pic2,Pic3];
+	//////////////////////////////////////////////////////////////
+	ceiling = new THREE.Mesh(new THREE.PlaneGeometry(250,250),
+	new THREE.MeshPhongMaterial({
+		color:0x888800,
+		side:THREE.DoubleSide
+	}));
+	ceiling.position.y=100;
+	ceiling.rotation.x=Math.PI/2;
+	scene.add(ceiling);
+	
+	Lmesh = new THREE.Mesh(new THREE.SphereGeometry(5,26,26),
+	new THREE.MeshBasicMaterial({
+		map: new THREE.ImageUtils.loadTexture("images/lamp.png") ,
+		side : THREE.DoubleSide ,
+		transparent : true
+	}));
+    Lmesh.position.set(-20, 50, 10);
+    light = new THREE.PointLight(0xffffff);
+    light.position.set(-20, 50, 10);
+	ceiling.add(Lmesh);
+    ceiling.add(light);
+	
+	Lmesh2 = new THREE.Mesh(new THREE.SphereGeometry(5,26,26),
+	new THREE.MeshBasicMaterial({
+		map: new THREE.ImageUtils.loadTexture("images/lamp.png") ,
+		side : THREE.DoubleSide ,
+		transparent : true
+	}));
+    Lmesh2.position.set(-20, -50, 10);
+    var light2 = new THREE.PointLight(0xffffff);
+    light2.position.set(-20, -50, 10);
+	ceiling.add(Lmesh2);
+    ceiling.add(light2);
+
+	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/floor.jpg' );
+	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+	floorTexture.repeat.set( 10, 10 );
+	var grid=new THREE.Mesh(new THREE.PlaneGeometry(250,250),
+	new THREE.MeshPhongMaterial({
+		bumpMap: floorTexture,
+		bumpScale: 0.8,
+		color: 0xD7A686,
+		side:THREE.DoubleSide
+	}));
+	
+	grid.rotation.x=-1*Math.PI/2;
+    scene.add(grid);
+	
+	raycaster = new THREE.Raycaster();
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+	var ambientLight = new THREE.AmbientLight (0x111111);
+	scene.add(ambientLight);
+	window.addEventListener ('resize', onWindowResize, false);
+	
+	document.addEventListener('mousedown', onDocumentMouseDown, false);
+    // the following is not needed for "embed" mode
+    // document.body.appendChild(renderer.domElement);
+}
+////////////////////////////////////raycaster
+function onDocumentMouseDown(event) {
+
+    // PICKING DETAILS: 
+    // convert mouse.xy = [-1,1]^2 (NDC)
+    // unproject (mouse.xy, 1) to a point on the far plane (in world coordinate)
+    // set raycaster (origin, direction)
+    // find intersection objects, (closest first) 
+    // each record as
+    // [ { distance, point, face, faceIndex, object }, ... ]
+	var theCanvasFrame = document.getElementById("cnvsFrame");
+	
+    event.preventDefault();
+    mouse.x = ((event.clientX-9) / theCanvasFrame.clientWidth) * 2 - 1;
+    mouse.y = -((event.clientY-125+document.documentElement.scrollTop) / theCanvasFrame.clientHeight) * 2 + 1;
+
+    // find intersections
+    var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
+    raycaster.set(camera.position, vector.sub(camera.position).normalize());
+    var intersects = raycaster.intersectObjects(pickables);
+	//add pic
+	if(actType==1)////////////////add
+	{
+		if (intersects.length > 0) {
+			var picture = new THREE.Mesh(new THREE.BoxGeometry(50,20,2),
+			new THREE.MeshPhongMaterial({
+				map: tex,
+				side: THREE.DoubleSide
+			}));
+			picture.name="picture"+trush;
+			picture.position.copy(intersects[0].point);
+			picture.rotation.copy (intersects[0].object.rotation);
+			scene.add(picture);
+			pickables.push(picture);
+			trush++;
+		}
+
+	}else if(actType==0)/////////////move
+	{
+		if (intersects.length > 0) {
+			var c=0;//debugger;
+			switch(intersects[0].object.name){
+				case "wallU":
+				case "wallL":
+				case "wallI":
+					c=1;
+					break;
+				default:
+					break;
+			}
+			
+			if(c==1&&choosePic!=null)
+			{
+				choosePic.position.copy(intersects[0].point);
+				choosePic.rotation.copy (intersects[0].object.rotation);
+			}
+			if(c==0)
+			{
+				choosePic=intersects[0].object;
+				choosePic.Material.color.set(0xffff00);
+			}
+		}
+	}else if(actType==2)/////////////delete
+	{
+		if (intersects.length > 0) {
+			var c=0;//debugger;
+			switch(intersects[0].object.name){
+				case "wallU":
+				case "wallL":
+				case "wallI":
+				case "Pic1":
+				case "Pic2":
+				case "Pic3":
+					c=1;
+					break;
+				default:
+					break;
+			}
+			
+			if(c==0)
+			{
+				scene.remove(intersects[0].object);
+				for(var i=3;i<pickables.length;i++)
+					if(intersects[0].object.name==pickables[i].name)
+						pickables.splice(i,1);
+			}
+		}
+	}
+
+}
+// remember "no warp in <body>"
+//
+function tst(which) {
+
+    tex = THREE.ImageUtils.loadTexture(which);
+    
+        //alert("click");
+        /*mesh.material = new THREE.MeshBasicMaterial({
+            map: tex,
+            side: THREE.DoubleSide
+        });*/
+    
+    // debugger;
+}
+
+function onWindowResize ()
+{
+	var theCanvasFrame = document.getElementById("cnvsFrame");
+	camera.aspect = theCanvasFrame.clientWidth / theCanvasFrame.clientHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize (theCanvasFrame.clientWidth, theCanvasFrame.clientHeight);
+}
+
+function animate() {
+    controls.update();
+
+	angle+=0.02;
+	Lmesh.rotation.z=angle;
+	Lmesh2.rotation.y=angle;
+	
+    requestAnimationFrame(animate);
+    render();
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+</script>
+
+</body>
+</html>

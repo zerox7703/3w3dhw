@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	body {
+		background-color: #fff;
+		color: #111;
+		margin: 0px;
+		overflow: hidden;
+		font-family: Monospace;
+		font-size: 20px;
+		position: fixed;
+	}
+	#info {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #ff00ff
+}
+</style>
+</head>
+
+<body>
+
+<div id="info"> This is render by ShaderMaterial and polygon model<br/>
+Click <a href="javascript:chModel()">here</a> to change model
+<br/>
+with BGM (<a href="javascript:toggle();">ON/OFF</a>)
+</div>
+
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="sounds/warBGM.mp3" type='audio/mp3'>
+</audio>
+
+<div id="WebGL-output"> 
+</div> 
+<div id="container"></div>
+<script src="js/three.min.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/dat.gui.min.js"></script> 
+<script id="myVertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vUv = uv;
+    }
+</script>
+<script id="myFragmentShader" type="x-shader/x-fragment">
+    uniform sampler2D texture;
+    varying vec2 vUv;
+
+    void main() {
+        vec4 color = texture2D (texture,vUv);
+        if (color.b > 0.9) 
+            discard;
+        else 
+            gl_FragColor = vec4(.2, .2, .2, 0.) + color;
+    }
+</script>
+<script>
+
+var scene, renderer, camera;
+var cube,quad,manyquad = [],manymesh=[];
+var controls,stats;
+var sceneRTT, rtTexture, mesh,sceneP;
+var clock = new THREE.Clock();
+var soundTrack;
+var model=0;
+
+init();
+animate();
+
+function toggle(){
+	soundTrack.volume=soundTrack.volume==1?0:1;
+}
+
+function chModel()
+{
+	model=!model;
+}
+
+function init()
+{
+	soundTrack=document.getElementById('soundtrack');
+	renderer = new THREE.WebGLRenderer( {antialias:true} );
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	renderer.setSize (width, height);
+	
+	
+	document.body.appendChild (renderer.domElement);
+	sceneRTT = new THREE.Scene();
+	scene = new THREE.Scene();
+	sceneP = new THREE.Scene();
+	
+	
+	// STATS
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );
+
+	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
+	camera.position.y = 60;
+	camera.position.z = 100;
+	camera.lookAt (new THREE.Vector3(0,0,0));
+
+	controls = new THREE.OrbitControls (camera, renderer.domElement);
+	
+	////////////////////////////render reapot
+	rtTexture = new THREE.WebGLRenderTarget(
+    window.innerWidth, window.innerHeight, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.NearestFilter,
+        format: THREE.RGBFormat
+    });
+	
+	var gui = new dat.GUI();
+	
+	// setup the control gui
+	var ctrl = new function () {
+		// we need the first child, since it's a multimaterial
+		this.polygon_animations = 'crattack';
+		this.ShaderMaterial_animations = 'crattack';
+	}
+	
+	///////////////////////////Polygon model
+	
+	var jsonLoader = new THREE.JSONLoader();
+    jsonLoader.load("models/laalaa.js", function (geometry, mat) {
+        geometry.computeMorphNormals();
+
+		var mat = new THREE.MeshBasicMaterial(
+				{
+					map: THREE.ImageUtils.loadTexture("models/laalaa.png"),
+					morphTargets: true, morphNormals: true
+				});
+
+		mesh = new THREE.MorphAnimMesh(geometry, mat);
+
+
+		mesh.rotation.y = 0.7;
+		
+
+        for(var i=0;i<2500;i++)
+		{
+			var quadij=mesh.clone();
+			quadij.position.set(50*(i%50-25),0,50*(Math.floor(i/50)-25));
+			quadij.parseAnimations();
+			quadij.playAnimation('crattack', 10);
+			manymesh.push(quadij);
+			sceneP.add(quadij);
+		}
+		///////////////control gui
+		var animLabels = [];
+		for (var key in mesh.geometry.animations) {
+			if (key === 'length' || !mesh.geometry.animations.hasOwnProperty(key)) continue;
+			animLabels.push(key);
+		}
+		gui.add(ctrl, 'polygon_animations', animLabels).onChange(function (e) {
+			for(var i=0;i<2500;i++)
+			manymesh[i].playAnimation(ctrl.polygon_animations, 10);
+		});
+    });
+	//////////////////////////////////////ShaderMaterial model
+	
+    jsonLoader = new THREE.JSONLoader();
+    jsonLoader.load("models/laalaa.js", function (geometry, mat) {
+        geometry.computeMorphNormals();
+
+		var mat = new THREE.MeshBasicMaterial(
+				{
+					map: THREE.ImageUtils.loadTexture("models/laalaa.png"),
+					morphTargets: true, morphNormals: true
+				});
+
+		mesh = new THREE.MorphAnimMesh(geometry, mat);
+
+
+		mesh.rotation.y = 0.7;
+		mesh.parseAnimations();
+		mesh.playAnimation('crattack', 10);
+		
+		///////////////control gui
+		var animLabels = [];
+		for (var key in mesh.geometry.animations) {
+			if (key === 'length' || !mesh.geometry.animations.hasOwnProperty(key)) continue;
+			animLabels.push(key);
+		}
+
+		gui.add(ctrl, 'ShaderMaterial_animations', animLabels).onChange(function (e) {
+			mesh.playAnimation(ctrl.ShaderMaterial_animations, 10);
+		});
+		
+		
+        sceneRTT.add(mesh);
+    });
+	
+	
+	var plane = new THREE.PlaneBufferGeometry(100, 100);
+    quad = new THREE.Mesh(plane,
+    new THREE.ShaderMaterial({
+        uniforms: {
+            texture: {
+                type: "t",
+                value: rtTexture
+            }
+        },
+        vertexShader: document.getElementById('myVertexShader').textContent,
+        fragmentShader: document.getElementById('myFragmentShader').textContent
+    }));
+	
+	for(var i=0;i<2500;i++)
+	{
+		var quadij=quad.clone();
+		quadij.position.set(50*(i%50-25),0,50*(Math.floor(i/50)-25));
+		manyquad.push(quadij);
+		scene.add(quadij);
+	}
+	
+	var pointLight = new THREE.PointLight (0xffffff);
+	pointLight.position.set (0,300,200);
+	scene.add (pointLight);
+	sceneRTT.add (pointLight);
+	sceneP.add(pointLight);
+	
+	window.addEventListener ('resize', onWindowResize, false);
+}
+
+function onWindowResize ()
+{
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize (window.innerWidth, window.innerHeight);
+}
+
+function rotboard(mesh)
+{
+	var b=mesh.position.clone();
+	var rotxis=new THREE.Vector3();
+	var v,yhat,n;
+	
+	v=camera.position.clone();
+	yhat=new THREE.Vector3(0,1,0);
+	n=new THREE.Vector3(0,0,1);
+	
+	//alert('v=',v);
+	v.subVectors(v,b);
+	v.sub(yhat.clone().multiplyScalar(v.dot(yhat)));
+	v.normalize();
+	
+	var rotangle=Math.acos(v.dot(n));
+	rotxis.crossVectors(n,v);
+	if(rotxis.dot(yhat)<0) rotangle*=-1;
+	
+	
+	mesh.rotation.y = rotangle;
+}
+
+function animate()
+{
+	controls.update();
+	stats.update();
+	
+	requestAnimationFrame ( animate );  
+	if(model==0)
+	for(var i=0;i<2500;i++)
+		rotboard(manyquad[i]);
+	
+	var delta = clock.getDelta();
+	
+	if (mesh) {
+		mesh.position.y = 25;
+		mesh.updateAnimation(delta * 1000);
+	}
+	if(model==1)
+	for(var i=0;i<2500;i++)
+	if (manymesh[i]) {
+		manymesh[i].updateAnimation(delta * 1000);
+	}
+	
+	////////////////inner render
+	renderer.setClearColor (0x0000ff);
+	renderer.render(sceneRTT, camera, rtTexture, true);
+	
+	////////////////full render
+	renderer.setClearColor (0x888888);
+	if(model==0)
+		renderer.render (scene, camera);
+	else if(model==1)
+		renderer.render (sceneP, camera);
+}
+
+
+
+</script>
+</body>
+
+</html>

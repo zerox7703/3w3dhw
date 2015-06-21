@@ -247,8 +247,8 @@ function onDocumentMouseDown(event) {
 	var theCanvasFrame = document.getElementById("cnvsFrame");
 	
     event.preventDefault();
-    mouse.x = ((event.clientX-9) / theCanvasFrame.clientWidth) * 2 - 1;
-    mouse.y = -((event.clientY-125+document.documentElement.scrollTop) / theCanvasFrame.clientHeight) * 2 + 1;
+    mouse.x = ((event.clientX-theCanvasFrame.offsetLeft) / theCanvasFrame.clientWidth) * 2 - 1;
+    mouse.y = -((event.clientY-theCanvasFrame.offsetTop+document.documentElement.scrollTop) / theCanvasFrame.clientHeight) * 2 + 1;
 
     // find intersections
     var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
